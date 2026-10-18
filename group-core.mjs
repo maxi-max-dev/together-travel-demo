@@ -1,4 +1,5 @@
 import {clone,fail,defaults,weekend,invalidate,log,perform,tick,inputsReady,CHECK_MS} from './group-engine.mjs';
+import {makeConversation,seedConversation} from './conversation.mjs';
 const randomUUID=()=>globalThis.crypto.randomUUID();
 const limit=(value,n)=>String(value||'').trim().slice(0,n);
 export class GroupCore {
@@ -13,12 +14,13 @@ export class GroupCore {
  create(input={}) {
   const now=this.clock(),access=this.token(),ownerId=randomUUID(),dates=weekend(now);
   const name=limit(input.name,20);if(!name)fail('请填写你的称呼');
-  const destination=['成都','杭州','厦门'].includes(input.destination)?input.destination:'成都';
+  const destination=['上海','成都','杭州','厦门'].includes(input.destination)?input.destination:'成都';
   const room={id:randomUUID(),title:limit(input.title,50)||`${destination}周末见`,destination,ownerId,revision:0,createdAt:now,updatedAt:now,
    conditionVersion:1,planVersion:0,stage:'collecting',roomMode:'twin',reserve:700,minHours:12,maxWait:120,
    arrangement:input.arrangement==='organizer'?'organizer':'shared',arrivalMode:input.arrivalMode==='independent'?'independent':'together',splitMode:'nights',roomGroups:{},retainedOrders:[],losses:[],
    members:[{id:ownerId,name,joined:true,accessHash:this.digest(access),profile:defaults(0,dates),confirmed:false,consent:null,memory:null}],
    ideas:[],candidates:[],planErrors:[],plan:null,previousPlan:null,changeReason:'',watch:null,batch:null,batches:[],events:[]};
+  room.members[0].conversation=seedConversation(input.conversation,destination);
   const count=input.count===undefined?2:Number(input.count);if(!Number.isInteger(count)||count<1||count>6)fail('请选择1–6位出行者');
   for(let i=1;i<count;i++)this.addInvite(room,i===1?(limit(input.friend,20)||'朋友'):`同行 ${i+1}`,now);
   log(room,`${name}发起了${count===1?'单人':'多人'}旅行，可以先整理草稿再邀请。`,now);
@@ -44,6 +46,11 @@ export class GroupCore {
   }else perform(room,id,input.action,data,now);
   this.commit(room);return this.project(room,id);
  }
+ conversation(roomId,access,input,result){
+  const {room,member}=this.authenticate(roomId,access),draft=clone(room),m=draft.members.find(x=>x.id===member.id);
+  m.conversation=makeConversation(draft,m,input,result,this.clock());this.commit(draft);
+  return {conversation:clone(m.conversation),room:this.project(draft,m.id)};
+ }
  project(room,id) {
   const r=clone(room);r.viewerId=id;r.isOwner=id===r.ownerId;r.readyErrors=inputsReady(room);r.checkIntervalMs=CHECK_MS;
   delete r.priorConsents;
@@ -51,7 +58,7 @@ export class GroupCore {
    if(m.id!==id&&!r.isOwner)delete m.proposal;
    if(m.id!==id&&!r.isOwner)delete m.delegation;
    if(!r.isOwner||m.joined)delete m.inviteToken;
-   if(m.id!==id){delete m.profile.brief;delete m.memory;delete m.profile.remember;
+   if(m.id!==id){delete m.conversation;delete m.profile.brief;delete m.memory;delete m.profile.remember;
     if(!m.profile.shareBudget&&!(r.isOwner&&!m.confirmed))m.profile.budget=null;
     if(r.isOwner&&m.delegation)m.delegation={enabled:true,until:m.delegation.until,cap:m.delegation.cap,flexGroup:m.delegation.flexGroup};
     if(m.consent){delete m.consent.cap;delete m.consent.target;}

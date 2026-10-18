@@ -21,7 +21,7 @@ export function weekend(now=Date.now()) {
  return {start:dateOf(d),end:dateOf(d+2*DAY)};
 }
 export function defaults(index=0, dates=weekend()) {
- return {origin:['上海','深圳','北京','广州','武汉','南京'][index%6],...dates,earliest:'18:00',latest:'22:00',budget:3400,shareBudget:false,noRedEye:true,directOnly:true,destinations:['成都','杭州','厦门'],prefs:'慢慢逛，吃点当地的',brief:'',remember:false};
+ return {origin:['上海','深圳','北京','广州','武汉','南京'][index%6],...dates,earliest:'18:00',latest:'22:00',budget:3400,shareBudget:false,noRedEye:true,directOnly:true,destinations:['上海','成都','杭州','厦门'],prefs:'慢慢逛，吃点当地的',brief:'',remember:false};
 }
 export function log(room,message,now=Date.now(),kind='info') {
  room.events.unshift({id:randomUUID(),at:now,message,kind});room.events=room.events.slice(0,160);
@@ -37,6 +37,12 @@ export function invalidate(room,reason,now=Date.now()) {
 }
 function member(room,id) {const m=room.members.find(x=>x.id===id&&x.joined);requireThat(m,'成员不存在或尚未领取邀请',403);return m;}
 const owner=(room,id)=>requireThat(room.ownerId===id,'只有发起人可以修改这项共同设置',403);
+export const preferenceList=value=>[...new Set((Array.isArray(value)?value:typeof value==='string'?value.split(/[、,，;；\n]/):[]).map(x=>text(x,40)).filter(Boolean))].slice(0,8);
+export function preferenceConflicts(room){
+ const people=room.members.filter(m=>m.confirmed),key=s=>s.normalize('NFKC').toLowerCase().replace(/\s/g,'');
+ const conflicts=[];for(const m of people)for(const place of m.profile.musts||[])for(const other of people)if((other.profile.avoids||[]).some(x=>key(x)===key(place)))conflicts.push(`“${place}”存在必去与不去的分歧（${m.name} / ${other.name}）`);
+ return [...new Set(conflicts)];
+}
 export function profilePatch(room,id,input,now=Date.now()) {
  const m=member(room,id),p=input.profile||{};
  requireThat(input.profileRevision===(m.profileRevision||0),'你的条件已在另一个页面更新，请查看最新内容后再提交。',409);
@@ -49,6 +55,7 @@ export function profilePatch(room,id,input,now=Date.now()) {
  requireThat(destinations.length>0&&destinations.length<=8,'至少选择一个能接受的目的地');
  const profile={payer:p.payer==='organizer'?'organizer':'self',origin:text(p.origin,20),start:p.start,end:p.end,earliest:p.earliest,latest:p.latest,
   budget:p.budget===null?null:bounded(p.budget,1,1000000,'个人预算'),shareBudget:p.shareBudget===true,
+  likes:preferenceList(p.likes),musts:preferenceList(p.musts),avoids:preferenceList(p.avoids),
   noRedEye:p.noRedEye===true,directOnly:p.directOnly===true,destinations,prefs:text(p.prefs,300),brief:text(p.brief,3000),remember:p.remember===true};
  const changed=JSON.stringify(profile)!==JSON.stringify(m.profile)||input.name!==m.name;
  if(changed||room.plan)invalidate(room,`${m.name}更新了本次条件，需要重新核对共同安排。`,now);
@@ -92,7 +99,7 @@ function makeFlight(m,index,direction,day,variant,room,previous) {
  return possible[0]||null;
 }
 export function inputsReady(room) {
- const errors=[];
+ const errors=preferenceConflicts(room);
  if(room.members.length<1)errors.push('至少需要一位出行者');
  for(const m of room.members){if(!m.joined)errors.push(`等${m.name}领取邀请`);else if(!m.confirmed)errors.push(`等${m.name}确认条件`);else if(!m.profile.destinations.includes(room.destination))errors.push(`${m.name}尚未接受${room.destination}`);}
  for(const idea of room.ideas){const votes=room.members.map(m=>idea.votes[m.id]||'pending');if(votes.includes('pending'))errors.push(`“${idea.title}”还需所有人表态`);if(votes.includes('must')&&votes.includes('avoid'))errors.push(`“${idea.title}”存在必去与不去的分歧`);}
@@ -283,7 +290,7 @@ export function perform(room,id,action,input={},now=Date.now()) {
  if(action==='end-wait') {requireThat(room.watch,'没有跟进任务');room.watch.status='stopped';room.watch.nextCheckAt=null;room.stage='stopped';room.members.forEach(m=>m.consent=null);room.priorConsents={};if(room.batch)room.batch.needsReview=true;log(room,`${member(room,id).name}结束了这次等待，原方案与已付款记录保留。`,now);return;}
 
  if(action==='settings') {
-  owner(room,id);requireThat(Number(input.settingsVersion)===(room.settingsVersion||0),'共同设置已经修改，请查看最新内容后再提交。',409);const destination=text(input.destination,20);requireThat(['成都','杭州','厦门'].includes(destination),'请选择示例目的地');
+  owner(room,id);requireThat(Number(input.settingsVersion)===(room.settingsVersion||0),'共同设置已经修改，请查看最新内容后再提交。',409);const destination=text(input.destination,20);requireThat(['上海','成都','杭州','厦门'].includes(destination),'请选择示例目的地');
   requireThat(['twin','single','assigned'].includes(input.roomMode),'请选择住宿方式');
   const reserve=bounded(input.reserve,0,10000,'每人生活预留'),minHours=bounded(input.minHours,1,96,'最少共同时间'),maxWait=bounded(input.maxWait,0,720,'最长会合等待');
   const roomGroups={};for(const m of room.members)roomGroups[m.id]=text(input['room-'+m.id]||room.roomGroups?.[m.id]||'单间-'+m.name,24);

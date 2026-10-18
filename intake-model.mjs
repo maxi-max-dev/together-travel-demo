@@ -1,5 +1,5 @@
 // Conversation drafts are suggestions, never profile confirmation or booking authority.
-export const destinations=['成都','杭州','厦门'];
+export const destinations=['上海','成都','杭州','厦门'];
 const has=(o,k)=>Object.hasOwn(o,k);
 const dateOf=t=>new Date(t+8*3600000).toISOString().slice(0,10);
 const validDate=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(Date.parse(s+'T00:00:00+08:00'))&&dateOf(Date.parse(s+'T00:00:00+08:00'))===s;
@@ -17,6 +17,7 @@ export function cleanDraft(input={}){
  for(const k of ['noRedEye','directOnly'])if(typeof p[k]==='boolean')requirements[k]=p[k];
  if(Array.isArray(p.destinations)){const ds=[...new Set(p.destinations.filter(d=>destinations.includes(d)))];if(ds.length)requirements.destinations=ds;}
  if(typeof p.prefs==='string'&&p.prefs.trim())requirements.prefs=p.prefs.trim().slice(0,300);
+ for(const k of ['likes','musts','avoids'])if(Array.isArray(p[k]))requirements[k]=[...new Set(p[k].filter(x=>typeof x==='string').map(x=>x.trim().slice(0,40)).filter(Boolean))].slice(0,8);
  return {setup,requirements};
 }
 export function mergeDraft(previous,next){return cleanDraft({setup:{...previous?.setup,...next?.setup},requirements:{...previous?.requirements,...next?.requirements}});}
@@ -24,14 +25,14 @@ export function nextQuestion(draft,{personal=false,now=Date.now()}={}){
  const s=draft.setup,p=draft.requirements;
  if(!personal&&!s.count)return {key:'count',text:'这趟一共几个人？可以先只说你自己的想法，朋友的条件等他们确认。'};
  if(!p.origin)return {key:'origin',text:'你自己从哪个城市出发？朋友的出发地可以稍后分别补充。'};
- if(!s.destination&&!p.destinations?.length)return {key:'destination',text:'想先聊哪个目的地？这版可以体验成都、杭州、厦门。'};
+ if(!s.destination&&!p.destinations?.length)return {key:'destination',text:'想先聊哪个目的地？这版可以体验上海、成都、杭州、厦门。'};
  if(!p.start||!p.end)return {key:'dates',text:'你哪天能出发、哪天必须回来？可以说“10月23日到25日”。'};
  if(p.end<=p.start||Date.parse(p.start+'T00:00:00+08:00')<=now||Date.parse(p.end)-Date.parse(p.start)>7*86400000)return {key:'dates',text:'再核对一下日期：这版支持未来、一周以内、至少住一晚的旅行。你想哪天去、哪天回？'};
  if(!has(p,'budget'))return {key:'budget',text:'你个人这一趟的预算上限是多少？也可以说“先估价，不设预算”。'};
  if(!has(p,'directOnly')||!has(p,'noRedEye'))return {key:'flights',text:'航班有什么不能接受的？比如“只坐直飞，不坐红眼”，或“中转、夜间都可以”。'};
  return {key:'ready',text:'已经能整理一份条件草稿了。你还可以补充起降时间、想怎么玩，或者先打开条件核对；朋友仍需确认自己的条件。'};
 }
-export function draftSummary(draft){const s=draft.setup,p=draft.requirements;return [s.count?`${s.count} 人同行`:null,p.origin?`我从${p.origin}出发`:null,s.destination?`先去${s.destination}`:p.destinations?.length?`想去${p.destinations.join(' / ')}`:null,p.start&&p.end?`${p.start} — ${p.end}`:null,has(p,'budget')?p.budget===null?'先估价，不设上限':`我的整趟上限 ¥${p.budget.toLocaleString('zh-CN')}`:null,has(p,'directOnly')?p.directOnly?'只坐直达':'可以中转':null,has(p,'noRedEye')?p.noRedEye?'避开 23:00–06:00 起降':'可以夜间起降':null,p.earliest?`去程 ${p.earliest} 后起飞`:null,p.latest?`返程 ${p.latest} 前落地`:null,p.prefs].filter(Boolean);}
+export function draftSummary(draft){const s=draft.setup,p=draft.requirements;return [s.count?`${s.count} 人同行`:null,p.origin?`我从${p.origin}出发`:null,s.destination?`先去${s.destination}`:p.destinations?.length?`想去${p.destinations.join(' / ')}`:null,p.start&&p.end?`${p.start} — ${p.end}`:null,has(p,'budget')?p.budget===null?'先估价，不设上限':`我的整趟上限 ¥${p.budget.toLocaleString('zh-CN')}`:null,has(p,'directOnly')?p.directOnly?'只坐直达':'可以中转':null,has(p,'noRedEye')?p.noRedEye?'避开 23:00–06:00 起降':'可以夜间起降':null,p.earliest?`去程 ${p.earliest} 后起飞`:null,p.latest?`返程 ${p.latest} 前落地`:null,p.prefs,...['likes','musts','avoids'].map(k=>p[k]?.length?({likes:'想去',musts:'一定要去',avoids:'不想去'}[k]+'：'+p[k].join('、')):null)].filter(Boolean);}
 const cities=['上海','深圳','北京','广州','武汉','南京','成都','杭州','厦门','重庆','西安','长沙','郑州','天津','苏州','昆明','青岛'];
 const number=s=>({'一':1,'二':2,'两':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10}[s]??Number(s));
 // Public Pages has no secrets or server. This deliberately bounded interpreter is labelled in the UI.
@@ -71,6 +72,7 @@ export function ruleTurn(state,text,{personal=false,now=Date.now()}={}){
  if(latest&&!/到家/.test(latest[0]))requirements.latest=time(latest[0]);
  if(/下班|到家/.test(own))notices.push('下班、到家时间和机场起降不同，需在条件核对里留出路程。');
  if(/慢慢逛|吃点|美食|博物馆|海边|日落|不赶|轻松|购物|看展/.test(own))requirements.prefs=own.slice(0,300);
+ for(const [k,label] of [['likes','想去'],['musts','一定要去'],['avoids','不想去']]){const m=own.match(new RegExp('(?:^|[，,])'+label+'[：:]?([^，,。；;]+)'));if(m)requirements[k]=m[1].split(/[、/]/).map(x=>x.trim());}
  const draft=mergeDraft(previous,{setup,requirements}),next=nextQuestion(draft,{personal,now});
  const answer=flowAnswer(input);
  const changed=JSON.stringify(draft)!==JSON.stringify(previous);

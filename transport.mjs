@@ -8,5 +8,6 @@ export const transport={
  setRoute:(view,path)=>history.replaceState({view},'',path?'#'+path.replace(/^\//,''):undefined),
  request:(url,options)=>exclusive(()=>store.request(url,options)),
  sample:kind=>exclusive(()=>store.sample(kind)),
+ studio:count=>exclusive(()=>store.studio(count)),
  persona:(roomId,memberId)=>exclusive(()=>store.persona(roomId,memberId))
 };

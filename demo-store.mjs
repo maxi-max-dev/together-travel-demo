@@ -18,13 +18,18 @@ export class DemoStore {
   if(url==='/api/v4/trips'&&method==='POST')return this.remember(core.create(data));
   if(url==='/api/v4/invite-info')return core.inviteInfo(data.invite);
   if(url==='/api/v4/join')return this.remember(core.claim(data.invite,data.name));
-  const match=url.match(/^\/api\/v4\/trips\/([a-f0-9-]+)(\/actions)?$/);
-  if(match)return method==='GET'?core.read(match[1],credential):core.action(match[1],credential,data);
+  const match=url.match(/^\/api\/v4\/trips\/([a-f0-9-]+)(\/(?:actions|conversation))?$/);
+  if(match)return method==='GET'?core.read(match[1],credential):match[2]==='/conversation'?core.conversation(match[1],credential,data):core.action(match[1],credential,data);
   throw Error('在线体验没有这个操作，也不会向真实订票接口发送请求。');
  }
  async persona(roomId,memberId){const core=this.core(),r=core.rooms[roomId],m=r?.members.find(m=>m.id===memberId);if(!m)throw Error('示例成员不存在');
   if(!m.joined)return this.remember(core.claim(m.inviteToken,m.name));
   const a=this.credentials(roomId,memberId);return {...a,room:core.read(roomId,a.access)};
+ }
+ async studio(count=2){
+  const core=this.core(),owner=core.create({name:'小林',friend:'阿岚',destination:'上海',count,arrangement:'shared',arrivalMode:'independent'});this.remember(owner);const people=[owner];
+  for(const m of core.rooms[owner.roomId].members.slice(1))people.push(this.remember(core.claim(m.inviteToken,m.name)));
+  return people.map(a=>({...a,room:core.read(a.roomId,a.access)}));
  }
  async sample(kind='shared'){
   const core=this.core(),count=kind==='solo'?1:kind==='partial'?3:2;
