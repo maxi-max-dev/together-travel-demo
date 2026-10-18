@@ -14,7 +14,10 @@ else{
    const article=document.createElement('article');article.className='studio-person';
    const heading=document.createElement('header'),label=document.createElement('strong'),hint=document.createElement('span');
    label.textContent=['小林 · 成都出发','阿岚 · 北京出发','同行 3 · 自己补充'][i];hint.textContent='建议场景，尚未填入或确认';heading.append(label,hint);
-   const frame=document.createElement('iframe');frame.title=label.textContent+'的个人对话';frame.src='./'+transport.urlFor(`/trip/${p.roomId}/${p.memberId}`);article.append(heading,frame);target.append(article);
+   const route=transport.urlFor(`/trip/${p.roomId}/${p.memberId}`);
+   const entry='./index.html'+route;
+   const open=document.createElement('a');open.textContent='单独打开 ↗';open.href=entry;open.target='_blank';open.rel='noopener';heading.append(open);
+   const frame=document.createElement('iframe');frame.title=label.textContent+'的个人对话';frame.src=entry;article.append(heading,frame);target.append(article);
   }
   status.textContent=`${count} 个独立成员视角 · 输入确认后，另外的窗口会同步共同进度`;
   drawDevices();

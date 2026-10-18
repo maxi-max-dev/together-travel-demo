@@ -2,11 +2,12 @@ import {cleanDraft,ruleTurn,draftSummary} from './intake-model.mjs';
 const states=new Map();
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const blank=initial=>({draft:cleanDraft(initial),turns:[],pending:'',input:'',waiting:false,error:'',revision:0});
-export function intakeState(key,initial){if(!states.has(key)){let saved;if(key==='landing')try{saved=JSON.parse(sessionStorage.getItem('together-landing-draft-v9'))}catch{}states.set(key,{...blank(initial),...saved});}return states.get(key);}
+export function intakeState(key,initial){if(!states.has(key)){let saved;try{saved=JSON.parse(sessionStorage.getItem(key==='landing'?'together-landing-draft-v9':'together-input-v9:'+key))}catch{}states.set(key,{...blank(initial),...saved});}return states.get(key);}
 export function seedIntake(key,draft,turns=[]){states.set(key,{...blank(draft),turns});}
 export function mountIntake(root,{key,personal=false,initial={},saved,live=false,request,sendTurn,onSaved=()=>{},onApply,onDirty=()=>{},subjectName='',destination='',reviewedAt=0} ){
  if(!root)return;const state=intakeState(key,initial);
- if(saved&&!state.waiting&&!state.input&&(saved.revision>state.revision||saved.profileRevision!==state.profileRevision))Object.assign(state,{...saved,draft:cleanDraft(saved.draft),error:''});
+ if(saved&&!state.waiting&&(saved.revision>state.revision||saved.profileRevision!==state.profileRevision)){const input=state.input;Object.assign(state,{...saved,draft:cleanDraft(saved.draft),error:'',input});}
+ const keepInput=()=>{if(key!=='landing')try{sessionStorage.setItem('together-input-v9:'+key,JSON.stringify({input:state.input}));}catch{}};
  const draw=()=>{
   const summary=draftSummary(state.draft),check=state.draft.requirements;
   root.innerHTML=`<div class="conversation-heading"><span class="conversation-mark" aria-hidden="true">↗</span><div><strong>${personal?(subjectName?'先帮 '+esc(subjectName)+' 整理':'只说你的，我们来凑成一趟'):'先说说，你想怎么一起玩'}</strong><small>${live?'百炼 · 真实 AI 对话':'流程演练 · 规则整理'}${personal&&!subjectName?' · 对话仅自己可见':''}</small></div></div>
@@ -32,10 +33,10 @@ export function mountIntake(root,{key,personal=false,initial={},saved,live=false
    }
    onDirty(false);
   }catch(e){state.error=e.message+' 原文已保留。';}
-  finally{state.waiting=false;if(root.isConnected){draw();root.querySelector('textarea').focus();}}
+  finally{state.waiting=false;keepInput();if(root.isConnected){draw();root.querySelector('textarea').focus();}}
  };
  root.onsubmit=e=>{e.preventDefault();e.stopPropagation();send();};
- root.oninput=e=>{if(e.target.name==='message'){state.input=e.target.value;onDirty(true);}};
- root.onclick=e=>{const example=e.target.closest('[data-intake-example]');if(example){state.input=example.dataset.intakeExample;draw();root.querySelector('textarea').focus();onDirty(true);}if(e.target.closest('[data-intake-apply]')&&!state.waiting)onApply(state.draft,state.turns);};
+ root.oninput=e=>{if(e.target.name==='message'){state.input=e.target.value;keepInput();onDirty(true);}};
+ root.onclick=e=>{const example=e.target.closest('[data-intake-example]');if(example){state.input=example.dataset.intakeExample;keepInput();draw();root.querySelector('textarea').focus();onDirty(true);}if(e.target.closest('[data-intake-apply]')&&!state.waiting)onApply(state.draft,state.input.trim()?[...state.turns,{role:'user',text:state.input}]:state.turns);};
  draw();
 }
