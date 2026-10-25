@@ -1,5 +1,6 @@
 import {clone,fail,defaults,weekend,invalidate,log,perform,tick,inputsReady,CHECK_MS} from './group-engine.mjs';
 import {makeConversation,seedConversation} from './conversation.mjs';
+import {listHandoff,reconcileHandoff} from './group-handoff.mjs';
 const randomUUID=()=>globalThis.crypto.randomUUID();
 const limit=(value,n)=>String(value||'').trim().slice(0,n);
 export class GroupCore {
@@ -9,8 +10,8 @@ export class GroupCore {
  persist(){this.save(this.rooms);}
  start(){if(this.timer)return;this.timer=setInterval(()=>this.check(),1000);this.timer.unref?.();}
  stop(){clearInterval(this.timer);this.timer=null;}
- check(){let changed=false;for(const r of Object.values(this.rooms)){const draft=clone(r);if(tick(draft,this.clock())){draft.revision++;draft.updatedAt=this.clock();this.rooms[r.id]=draft;changed=true;}}if(changed)this.persist();return changed;}
- commit(room){room.revision++;room.updatedAt=this.clock();this.rooms[room.id]=room;this.persist();return room;}
+ check(){let changed=false;for(const r of Object.values(this.rooms)){const draft=clone(r),now=this.clock();if(tick(draft,now)){reconcileHandoff(draft,now);draft.revision++;draft.updatedAt=now;this.rooms[r.id]=draft;changed=true;}}if(changed)this.persist();return changed;}
+ commit(room){const now=this.clock();reconcileHandoff(room,now);room.revision++;room.updatedAt=now;this.rooms[room.id]=room;this.persist();return room;}
  create(input={}) {
   const now=this.clock(),access=this.token(),ownerId=randomUUID(),dates=weekend(now);
   const name=limit(input.name,20);if(!name)fail('请填写你的称呼');
@@ -53,6 +54,7 @@ export class GroupCore {
  }
  project(room,id) {
   const r=clone(room);r.viewerId=id;r.isOwner=id===r.ownerId;r.readyErrors=inputsReady(room);r.checkIntervalMs=CHECK_MS;
+  r.handoff=listHandoff(room,id);delete r.handoffRecords;
   delete r.priorConsents;
   for(const m of r.members){delete m.accessHash;
    if(m.id!==id&&!r.isOwner)delete m.proposal;

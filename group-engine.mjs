@@ -1,4 +1,5 @@
 import {paidOrders,travelerId,payerFor,attachLedger,orderSpec,paidConflicts,canCarryConsent,agreementKey} from './group-policy.mjs';
+import {saveHandoff} from './group-handoff.mjs';
 // v4 domain logic. Every fare, timetable, lodging and order is synthetic.
 const randomUUID=()=>globalThis.crypto.randomUUID();
 
@@ -269,6 +270,7 @@ export function orderAction(room,id,input,now=Date.now()) {
 }
 export function perform(room,id,action,input={},now=Date.now()) {
  member(room,id);
+ if(action==='handoff-save'){const result=saveHandoff(room,id,input,now);log(room,`${member(room,id).name}保存了${result.record.itemLabel}的人工核价${result.status==='recorded'?'记录':'部分记录'}；未改变报价核验或付款权限。`,now);return;}
  if(action==='profile')return profilePatch(room,id,input,now);
  if(action==='draft-profile'){
   owner(room,id);const target=room.members.find(m=>m.id===input.memberId);requireThat(target&&target.id!==id,'请选择同行者');

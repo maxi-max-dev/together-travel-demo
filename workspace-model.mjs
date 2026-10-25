@@ -25,7 +25,7 @@ export function nextTask(room) {
   if(unconfirmed.length) return {view:'watch', title:`等${unconfirmed.map(m=>m.name).join('、')}确认委托`, body:'你的授权已经保存。所有人都确认以后，才会开始共同跟进。', label:'查看委托进度', tone:'normal'};
   const labels={paused:['这趟委托已暂停','恢复前不会继续检查，由暂停的成员决定是否恢复。'],expired:['已经到约定的决策时间','当前任务停止，请核对条件并决定新的等待期限。'],stopped:['委托已撤回','任务停止，已有记录保留。'], 'needs-decision':['有变化需要重新决定','先核对变化，再决定是否接受新的安排。'], 'waiting-data':['还缺完整报价，继续核实','未知价格不会按零计算，暂不准备预订清单。'], 'waiting-activity':['先落实必去项目','机酒便宜也不能跳过你们一定要去的活动。'],ready:['整趟条件满足，等你们决定','有人仅授权提醒，系统不会替你们准备订单。']};
   const status=room.watch?.status, state=labels[status];
-  return {view:status==='waiting-activity'&&room.isOwner?'team':'watch', title:state?.[0]||'已交给系统，继续等合适的安排', body:state?.[1]||'后台会一起检查每个人的交通、共同住宿和必要活动。出现需要决定的变化，会留在这里。', label:status==='waiting-activity'&&room.isOwner?'查看必去项目':'查看跟进详情', tone:state?'warm':'good'};
+  return {view:status==='waiting-data'?'handoff':status==='waiting-activity'&&room.isOwner?'team':'watch', title:state?.[0]||'已交给系统，继续等合适的安排', body:state?.[1]||'后台会一起检查每个人的交通、共同住宿和必要活动。出现需要决定的变化，会留在这里。', label:status==='waiting-data'?'继续核价交接':status==='waiting-activity'&&room.isOwner?'查看必去项目':'查看跟进详情', tone:state?'warm':'good'};
 }
 
 export function journeyProgress(room) {

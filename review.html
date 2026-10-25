@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#F0F5F8">
+  <meta name="description" content="用三分钟体验一起去玩：一人改期后保留有效安排、分别确认变化，并在缺完整报价时继续人工核对。公开案例全部模拟。">
+  <title>一起去玩 · 三分钟体验</title>
+  <link rel="stylesheet" href="./group.css">
+  <link rel="stylesheet" href="./review.css">
+  <script type="module" src="./review.mjs"></script>
+</head>
+<body class="review-page">
+  <a class="review-skip" href="#review-main">跳到体验入口</a>
+  <header class="review-header">
+    <a class="brand" href="./"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>一起去玩</a>
+    <span class="review-header-label">评委体验 · 约 3 分钟</span>
+    <a class="review-header-link" href="./guide.html" data-demo-path="guide.html">完整功能说明 ↗</a>
+  </header>
+
+  <main id="review-main" class="review-main">
+    <section class="review-hero" aria-labelledby="review-title">
+      <div class="review-intro">
+        <p class="review-kicker">各自出发，一起决定</p>
+        <h1 id="review-title">有一个人改期，<br>这趟旅行<span>不用重来。</span></h1>
+        <p class="review-lead">三人去杭州，两人的去程已模拟付款。第三人晚一天出发——留下有效安排，把变化交回对应的人确认。</p>
+        <div class="review-mode"><span aria-hidden="true"></span><strong>免登录 · 虚构案例 · 全程模拟</strong></div>
+        <a class="button primary review-start" href="./index.html#sample=changed&amp;view=plan" data-demo-path="index.html#sample=changed&amp;view=plan">查看改期前后对比 <span aria-hidden="true">→</span></a>
+        <p class="review-entry-note">一步进入已重排的共同方案。查看真实保存的前后版本、原单和确认状态。</p>
+      </div>
+
+      <aside class="review-ticket" aria-label="本次虚构案例概览">
+        <div class="review-ticket-heading"><span>同一趟旅行</span><strong>杭州</strong><small>三位同行者 · 案例示意</small></div>
+        <div class="review-route-row"><span class="review-person">林</span><div><strong>小林</strong><span>去程已模拟付款</span></div><span class="review-kept">原单保留</span></div>
+        <div class="review-route-row"><span class="review-person review-person-teal">岚</span><div><strong>阿岚</strong><span>去程已模拟付款</span></div><span class="review-kept">原单保留</span></div>
+        <div class="review-route-row review-route-changed"><span class="review-person review-person-warm">3</span><div><strong>第三位同行者</strong><span>出发时间晚一天</span></div><span class="review-changed">重新安排</span></div>
+        <div class="review-ticket-tail"><span>变化发生在一个人</span><strong>决定回到每个人</strong><p>住宿、费用和共同时间也要一起核对。</p></div>
+      </aside>
+    </section>
+
+    <section class="review-look" aria-labelledby="review-look-title">
+      <h2 id="review-look-title">打开后，看这三件事。</h2>
+      <div class="review-look-grid">
+        <div><span class="review-check" aria-hidden="true">↔</span><h3>到底改了什么</h3><p>逐人对照去程、返程、住宿与费用，再看共同时间和房晚。</p></div>
+        <div><span class="review-check" aria-hidden="true">✓</span><h3>已做的有没有留下</h3><p>有效已付项目保留原编号和金额，不重复建单或付款。</p></div>
+        <div><span class="review-check" aria-hidden="true">↗</span><h3>接下来轮到谁</h3><p>授权内的安排保留同意，受影响的人重新确认。</p></div>
+      </div>
+    </section>
+
+    <section class="review-continue" aria-labelledby="review-continue-title">
+      <div class="review-section-heading"><p class="review-kicker">再试两个关键时刻</p><h2 id="review-continue-title">信息不全，也有明确的下一步。</h2></div>
+      <article class="review-path">
+        <span class="review-path-label">缺完整报价时</span>
+        <div><h3>从“待核价”接着往下走</h3><p>查看缺项，记录自己的交通或公共住宿核对结果，保留来源与时间，再导出人工交接单。</p><small>手填记录不会变成供应商已验库存；最终价格仍需在官方核实。</small></div>
+        <a class="button secondary" href="./index.html#sample=pricing&amp;view=handoff" data-demo-path="index.html#sample=pricing&amp;view=handoff">体验核价接续 <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="review-path">
+        <span class="review-path-label">想亲手改一遍</span>
+        <div><h3>从第三人的改期建议开始</h3><p>切换到第三位成员，采纳晚一天出发的建议，再回到发起人重新安排，观察谁受到了影响。</p><small>每次点击会新建一份本地案例，旧的演练仍可从首页继续。</small></div>
+        <a class="button secondary" href="./index.html#sample=partial&amp;view=plan" data-demo-path="index.html#sample=partial&amp;view=plan">亲手改期 <span aria-hidden="true">→</span></a>
+      </article>
+    </section>
+
+    <section class="review-participate" aria-labelledby="review-participate-title">
+      <div><p class="review-kicker">每个人只面对自己的对话</p><h2 id="review-participate-title">分别说，共同看。</h2><p>个人原话只给自己看。确认后的条件进入同一张旅行桌，预算默认由本人保管。</p></div>
+      <div class="review-participate-links"><a class="button secondary" href="./studio.html?people=3" data-demo-path="studio.html?people=3">打开三人视角演练 ↗</a><a class="review-text-link" href="./index.html" data-demo-path="index.html">从空白旅行开始 →</a><small>同一浏览器中的虚构身份，可切换；不代表跨设备共同编辑。</small></div>
+    </section>
+
+    <section class="review-details" aria-label="能力与验证说明">
+      <details>
+        <summary>这里哪些是模拟，百炼和 FlyAI 各做什么？<span aria-hidden="true">＋</span></summary>
+        <div class="review-detail-body">
+          <p><strong>当前公开演练：</strong>使用本地规则整理文字和计算方案，机酒行情、订单、付款、退订均为模拟。数据保存在当前浏览器，页面关闭后停止模拟跟进。本页不调用百炼或 FlyAI。</p>
+          <dl class="review-roles"><div><dt>百炼 · 理解与解释</dt><dd>服务器版用模型整理自然语言需求、提取条件和解释候选。条件由本人核对，模型不代替本人同意，也不生成价格或库存事实。</dd></div><div><dt>FlyAI · 查询候选</dt><dd>服务器版查询航班和酒店参考候选，支持复查与重排。完整含费价、房型总价与足量库存尚未补齐，真实数据模式继续停在待核价。</dd></div><div><dt>程序规则 · 计算与权限</dt><dd>核对多人约束、分摊、版本和授权，决定何时保留原单、何时需要再次确认。所有下单仍模拟。</dd></div></dl>
+          <p class="review-dependency"><strong>真实 AI 恢复待验。</strong>百炼先前出现账户限制，当前没有把静态演练当作账户恢复证明。跨设备真人试用需 Max 提供专属创建入口或成员邀请，并完成账户和真实流程复验。</p>
+          <a class="review-text-link" href="https://maxxam.xyz/together/" target="_blank" rel="noopener noreferrer">查看服务器内测入口 ↗</a>
+        </div>
+      </details>
+      <details>
+        <summary>接下来怎样验证它是否真的省事？<span aria-hidden="true">＋</span></summary>
+        <div class="review-detail-body">
+          <p>准备让三组真实同行，在各自设备上用同一份条件完成群聊与 Demo 两种流程，再处理一人改期和缺报价。测试尚未开展，这里没有用户效果或节省时间的结论。</p>
+          <ul><li>记录核对轮次、操作时间和漏掉的条件。</li><li>观察重排是否被采用、哪些同意应该重确认，以及是否愿意再次使用。</li><li>记录失败、求助、两种流程的先后顺序和实际 API 成本；无法测到的项目保留为空。</li></ul>
+          <p>参与者由 Max 邀请。测试只用行程条件与模拟交易，不需要证件、支付信息或真实购买。</p>
+        </div>
+      </details>
+    </section>
+  </main>
+  <footer class="review-footer"><span>一起去玩 · 体验入口 v10</span><span>模拟成功不等于真实预订完成</span><a href="./guide.html" data-demo-path="guide.html">功能与边界 ↗</a></footer>
+</body>
+</html>
